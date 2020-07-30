@@ -1,0 +1,134 @@
+C51 COMPILER V9.56.0.0   8051MC                                                            07/29/2020 21:44:49 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE 8051MC
+OBJECT MODULE PLACED IN .\Objects\8051mc.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE 8051mc.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\80
+                    -51mc.lst) TABS(2) OBJECT(.\Objects\8051mc.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          sbit int1=P3^2;
+   3          sbit int2=P3^3;
+   4          #define FIRST_LINE 0x80
+   5          #define SECOND_LINE 0xC0
+   6          #define CONTROL_REGISTER 0x00
+   7          #define DATA_REGISTER 0x01
+   8          #define LCD_DATA P1
+   9          sbit LCD_ENABLE = P3^7;
+  10          sbit LCD_REGISTER_SELECT = P3^6;
+  11          void LCD_Initialization();
+  12          void LCD_MESSAGE_WRITE( unsigned int message_charactor);
+  13          void LCD_COMMAND_WRITE(char command_value);
+  14          DECLARE_OUTPUT_PORT=0X00;
+  15          sbit BUZZER_CONTROL=P3^5;
+  16          unsigned int flag,count,timer_count,rpm,display1,display2,display3,display4,display5,digit1,digit2,digit3;
+  17          void intER1() interrupt 0 //Interrupt to count no. of rotation in 1 second
+  18          {
+  19   1      count=count+1;
+  20   1      }
+  21          void timer() interrupt 3 //Interrupt to create 1s timer
+  22          { TF1=0;
+  23   1      TL1=0X7f;
+  24   1      TH1=0X44;
+  25   1        flag=flag+1;
+  26   1      }
+  27          void main()
+  28          {
+  29   1          P1=DECLARE_OUTPUT_PORT;
+  30   1          P2=DECLARE_OUTPUT_PORT;
+  31   1        int1=1;
+  32   1        int2=1;
+  33   1            TMOD=0X10;//Timer mode 1
+  34   1        BUZZER_CONTROL=1;
+  35   1        while(1)
+  36   1        {flag=0;
+  37   2        count=0;
+  38   2      TL1=0X7f;
+  39   2      TH1=0X44;
+  40   2          EA=1; //Enables the intterrupt
+  41   2          ET1=1;//Enables the timer 1 Interrupt
+  42   2      TR1=1;//Starts the timer
+  43   2          EX0=1;//Enables the External interrupt 0
+  44   2          IT0=1;//Enables the Timer 0 interrupt for falling edge trigger
+  45   2      while(flag<19);
+  46   2      EA=0;         //Disables the interrupts
+  47   2      rpm=60*count; //To convert no. of roation in secs to no. of rotation in min
+  48   2      display1=rpm/10000; 
+  49   2      digit1=(rpm%10000);
+  50   2        display2=(digit1/1000);
+  51   2        digit2=(digit1%1000);
+  52   2      display3=(digit2/100);  
+  53   2      digit3=(digit2%100);
+  54   2        display4=(digit3/10);
+C51 COMPILER V9.56.0.0   8051MC                                                            07/29/2020 21:44:49 PAGE 2   
+
+  55   2        display5=(digit3%10);
+  56   2      LCD_Initialization();
+  57   2      LCD_COMMAND_WRITE(0X80);
+  58   2      LCD_MESSAGE_WRITE('S');
+  59   2      LCD_COMMAND_WRITE(0X81);
+  60   2      LCD_MESSAGE_WRITE('P');
+  61   2      LCD_COMMAND_WRITE(0X82);
+  62   2      LCD_MESSAGE_WRITE('E');
+  63   2      LCD_COMMAND_WRITE(0X83);
+  64   2      LCD_MESSAGE_WRITE('E');
+  65   2      LCD_COMMAND_WRITE(0X84);
+  66   2      LCD_MESSAGE_WRITE('D');
+  67   2      LCD_COMMAND_WRITE(0X85);
+  68   2      LCD_MESSAGE_WRITE('=');
+  69   2      LCD_COMMAND_WRITE(0X86);
+  70   2      LCD_MESSAGE_WRITE(0x30+display1);
+  71   2      LCD_COMMAND_WRITE(0X87);
+  72   2      LCD_MESSAGE_WRITE(0x30+display2);
+  73   2      LCD_COMMAND_WRITE(0X88);
+  74   2      LCD_MESSAGE_WRITE(0x30+display3);
+  75   2      LCD_COMMAND_WRITE(0X89);
+  76   2      LCD_MESSAGE_WRITE(0x30+display4);
+  77   2      LCD_COMMAND_WRITE(0X8A);
+  78   2      LCD_MESSAGE_WRITE(0x30+display5);
+  79   2        
+  80   2      }}
+  81           void LCD_Initialization()
+  82          {      
+  83   1      LCD_COMMAND_WRITE(0X38);
+  84   1      LCD_COMMAND_WRITE(0X10);
+  85   1      LCD_COMMAND_WRITE(0X0C);
+  86   1      LCD_COMMAND_WRITE(0X06);
+  87   1      LCD_COMMAND_WRITE(0X01);
+  88   1      }
+  89          void LCD_COMMAND_WRITE(char command_value)
+  90          { char i;
+  91   1      LCD_DATA= command_value;
+  92   1      LCD_REGISTER_SELECT= CONTROL_REGISTER;
+  93   1      LCD_ENABLE=1;
+  94   1      for(i=0;i<100;i++);
+  95   1      LCD_ENABLE=0;
+  96   1      for(i=0;i<100;i++);
+  97   1      }
+  98          void LCD_MESSAGE_WRITE( unsigned int message_charactor)
+  99          { char k;
+ 100   1      LCD_DATA= message_charactor;
+ 101   1      LCD_REGISTER_SELECT= DATA_REGISTER;
+ 102   1      LCD_ENABLE=1;
+ 103   1      for(k=0;k<100;k++);
+ 104   1      LCD_ENABLE=0;
+ 105   1      for(k=0;k<100;k++);
+ 106   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    448    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     26    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+C51 COMPILER V9.56.0.0   8051MC                                                            07/29/2020 21:44:49 PAGE 3   
+
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
